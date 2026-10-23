@@ -21,10 +21,15 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class GamePage extends StatelessWidget {
-  final Game _game = Game();
+class GamePage extends StatefulWidget {
+  const GamePage({super.key});
 
-  GamePage({super.key});
+  @override
+  State<GamePage> createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  final Game _game = Game();
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +41,23 @@ class GamePage extends StatelessWidget {
           for (final guess in _game.guesses)
             Row(
               spacing: 5.0,
+              mainAxisAlignment: .center,
               children: [
-                for (final letter in guess) Tile(letter.char, letter.type),
+                for (final letter in guess)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2.5,
+                      vertical: 2.5,
+                    ),
+                    child: Tile(letter.char, letter.type),
+                  ),
               ],
             ),
           GuessInput(
             onSumbitGuess: (guess) {
-              debugPrint(guess);
+              setState(() {
+                _game.guess(guess);
+              });
             },
           ),
         ],
@@ -51,13 +66,26 @@ class GamePage extends StatelessWidget {
   }
 }
 
-class GuessInput extends StatelessWidget {
+class GuessInput extends StatefulWidget {
   final void Function(String) onSumbitGuess;
 
+  const GuessInput({super.key, required this.onSumbitGuess});
+
+  @override
+  State<GuessInput> createState() => _GuessInputState();
+}
+
+class _GuessInputState extends State<GuessInput> {
   final _textEditingController = TextEditingController();
   final _focusNode = FocusNode();
 
-  GuessInput({super.key, required this.onSumbitGuess});
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    _focusNode.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +116,7 @@ class GuessInput extends StatelessWidget {
   }
 
   void _onSubmit() {
-    onSumbitGuess(_textEditingController.text.trim());
+    widget.onSumbitGuess(_textEditingController.text.trim());
 
     _textEditingController.clear();
     _focusNode.requestFocus();
